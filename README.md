@@ -203,49 +203,6 @@ when the evidence arrives, not what it is.
 benchmark (80 investigations plus the 80-run hedging ablation) takes about 1-2s of
 real time, because all waiting happens on a virtual clock.
 
-### With a real model (pending)
-
-> **Not run yet.** These results need an Anthropic API key; the table below is the
-> layout `npm run bench -- --llm anthropic` produces, not data. Values will be filled
-> in from `bench/results/anthropic/results.md` after a real run.
-
-```bash
-export ANTHROPIC_API_KEY=...            # or put it in your shell profile
-npm run bench -- --llm anthropic --incidents upstream-gateway,cert-expiry   # the two red-herring incidents first
-npm run bench -- --llm anthropic        # all 8, one seed
-```
-
-| system | top-1 | top-3 | real time | sim time | tool calls | LLM calls | billed tokens | policy denials |
-|---|---|---|---|---|---|---|---|---|
-| orchestrator | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| ReAct baseline | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-
-What this run will answer: whether a real model, used as a plain ReAct agent, avoids
-the "blame the most recent change" trap that the scripted baseline falls into on
-`upstream-gateway` and `cert-expiry`; how often the orchestrator actually uses the
-model's plan rather than falling back to its template (`outcome: plan:llm` vs
-`plan:template` in `results.json`); and what each approach costs in billed tokens.
-
-**How to read this honestly:**
-
-- In mock mode the baseline's "LLM" is a **scripted agent** (`src/baseline/mock.ts`).
-  It behaves like a typical ReAct agent: check recent changes, and if one landed in
-  the last 15 minutes, blame it; otherwise follow error logs hop by hop. Its two misses
-  are the two incidents built around a misleading recent change. So the accuracy gap
-  shows what temporal-causality checking buys against that failure mode, not how a
-  frontier model would score. For that, run with `TRIAGEMESH_LLM=anthropic` (not
-  deterministic, so not part of the test suite).
-- **Real model:** `ANTHROPIC_API_KEY=… npm run bench -- --llm anthropic --incidents upstream-gateway,cert-expiry`
-  runs both systems with the real model (one seed by default; this uses API credits) and
-  writes `bench/results/anthropic/`. It reports real elapsed time and the tokens the API
-  actually billed. A run in which the model answers nothing (e.g. a missing key) aborts
-  instead of reporting the orchestrator's deterministic fallback as a model result.
-- The orchestrator makes ~5× more tool calls in about the same mean time because
-  independent queries run in parallel and slow calls are hedged. The baseline is
-  quicker on the easy incidents only because it stops after three calls. When it has
-  to dig (follow logs across services), it takes nearly twice as long (p95 14.7s vs 8.1s) and
-  uses more tokens, since every turn re-sends the whole history.
-
 ## Determinism
 
 There are no `Date.now()`, `Math.random()` or real timers in domain code. A `Clock`
