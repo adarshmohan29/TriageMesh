@@ -14,6 +14,7 @@ import { World } from "../sim/world.js";
 import type { ToolRegistry } from "../registry/registry.js";
 import { createSimRegistry } from "../tools/index.js";
 import { DEFAULT_LATENCY, SimLatency, type LatencyProfile } from "../tools/latency.js";
+import type { ExecutorConfig } from "../executor/executor.js";
 import { Orchestrator, type InvestigationError } from "./orchestrator.js";
 import type { InvestigationReport } from "./report.js";
 
@@ -50,6 +51,8 @@ export interface IncidentRunOptions {
   auditSink?: (line: string) => void;
   /** Omitted: tools and the LLM answer instantly. */
   latency?: SimLatencyOptions;
+  /** Executor overrides, e.g. { hedgeAfterMs: undefined } to measure what hedging buys. */
+  executor?: Partial<ExecutorConfig>;
   signal?: AbortSignal;
 }
 
@@ -110,6 +113,7 @@ export async function investigateIncident(options: IncidentRunOptions): Promise<
     llm,
     clock: world.clock,
     rng: createRng(seed),
+    ...(options.executor && { executor: options.executor }),
   });
 
   const report = await orchestrator.investigate(world.alert, {

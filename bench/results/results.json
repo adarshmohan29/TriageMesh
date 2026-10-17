@@ -47,6 +47,8 @@
       "meanToolCalls": 19.27,
       "meanLlmCalls": 3,
       "meanLlmTokens": 4419.98,
+      "meanBilledTokens": null,
+      "meanWallMs": null,
       "policyDenials": 5
     },
     {
@@ -59,6 +61,8 @@
       "meanToolCalls": 3.5,
       "meanLlmCalls": 4.5,
       "meanLlmTokens": 6682.58,
+      "meanBilledTokens": null,
+      "meanWallMs": null,
       "policyDenials": 0
     }
   ],
@@ -74,6 +78,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4403,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -87,6 +94,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4875,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -100,6 +110,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4399,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -113,6 +126,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4875,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -126,6 +142,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4415,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -139,6 +158,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4875,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -152,6 +174,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4400,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -165,6 +190,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4875,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -178,6 +206,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4403,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -191,6 +222,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4875,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -204,6 +238,9 @@
       "toolCalls": 14,
       "llmCalls": 3,
       "llmTokens": 3947,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -217,6 +254,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4850,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -230,6 +270,9 @@
       "toolCalls": 14,
       "llmCalls": 3,
       "llmTokens": 3943,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -243,6 +286,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4850,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -256,6 +302,9 @@
       "toolCalls": 14,
       "llmCalls": 3,
       "llmTokens": 3953,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -269,6 +318,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4850,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -282,6 +334,9 @@
       "toolCalls": 15,
       "llmCalls": 3,
       "llmTokens": 3943,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -295,6 +350,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4850,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -308,6 +366,9 @@
       "toolCalls": 15,
       "llmCalls": 3,
       "llmTokens": 3947,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -321,6 +382,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4850,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -334,6 +398,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4359,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -347,6 +414,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4889,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -360,6 +430,9 @@
       "toolCalls": 22,
       "llmCalls": 3,
       "llmTokens": 4375,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -373,6 +446,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4889,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -386,6 +462,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4361,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -399,6 +478,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4889,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -412,6 +494,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4361,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -425,6 +510,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4889,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -438,6 +526,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4360,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -451,6 +542,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4889,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -464,6 +558,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4513,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -477,6 +574,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4903,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -490,6 +590,9 @@
       "toolCalls": 22,
       "llmCalls": 3,
       "llmTokens": 4514,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -503,6 +606,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4903,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -516,6 +622,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4514,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -529,6 +638,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4903,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -542,6 +654,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4514,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -555,6 +670,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4903,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -568,6 +686,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4514,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -581,6 +702,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4903,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -594,6 +718,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4422,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -607,6 +734,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4795,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -620,6 +750,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4422,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -633,6 +766,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4795,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -646,6 +782,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4423,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -659,6 +798,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4795,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -672,6 +814,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4422,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -685,6 +830,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4795,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -698,6 +846,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4423,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -711,6 +862,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4795,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -724,6 +878,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4357,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -737,6 +894,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4667,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -750,6 +910,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4354,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -763,6 +926,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4667,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -776,6 +942,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 4368,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -789,6 +958,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4667,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -802,6 +974,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4355,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -815,6 +990,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4667,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -828,6 +1006,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4358,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -841,6 +1022,9 @@
       "toolCalls": 3,
       "llmCalls": 4,
       "llmTokens": 4667,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -854,6 +1038,9 @@
       "toolCalls": 21,
       "llmCalls": 3,
       "llmTokens": 4322,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -867,6 +1054,9 @@
       "toolCalls": 4,
       "llmCalls": 5,
       "llmTokens": 7480,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -880,6 +1070,9 @@
       "toolCalls": 22,
       "llmCalls": 3,
       "llmTokens": 4323,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -893,6 +1086,9 @@
       "toolCalls": 4,
       "llmCalls": 5,
       "llmTokens": 7480,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -906,6 +1102,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4322,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -919,6 +1118,9 @@
       "toolCalls": 4,
       "llmCalls": 5,
       "llmTokens": 7480,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -932,6 +1134,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4322,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -945,6 +1150,9 @@
       "toolCalls": 4,
       "llmCalls": 5,
       "llmTokens": 7480,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -958,6 +1166,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 4323,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 0
     },
     {
@@ -971,6 +1182,9 @@
       "toolCalls": 4,
       "llmCalls": 5,
       "llmTokens": 7480,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -984,6 +1198,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 5026,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 1
     },
     {
@@ -997,6 +1214,9 @@
       "toolCalls": 6,
       "llmCalls": 7,
       "llmTokens": 16995,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -1010,6 +1230,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 5029,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 1
     },
     {
@@ -1023,6 +1246,9 @@
       "toolCalls": 6,
       "llmCalls": 7,
       "llmTokens": 17056,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -1036,6 +1262,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 5029,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 1
     },
     {
@@ -1049,6 +1278,9 @@
       "toolCalls": 6,
       "llmCalls": 7,
       "llmTokens": 16936,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -1062,6 +1294,9 @@
       "toolCalls": 20,
       "llmCalls": 3,
       "llmTokens": 5030,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 1
     },
     {
@@ -1075,6 +1310,9 @@
       "toolCalls": 6,
       "llmCalls": 7,
       "llmTokens": 17056,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
     },
     {
@@ -1088,6 +1326,9 @@
       "toolCalls": 19,
       "llmCalls": 3,
       "llmTokens": 5031,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "plan:llm",
       "policyDenials": 1
     },
     {
@@ -1101,7 +1342,32 @@
       "toolCalls": 6,
       "llmCalls": 7,
       "llmTokens": 16965,
+      "wallMs": null,
+      "billedTokens": null,
+      "outcome": "answered",
       "policyDenials": 0
+    }
+  ],
+  "hedging": [
+    {
+      "hedging": true,
+      "runs": 40,
+      "top1": 1,
+      "meanQueryMs": 2826.43,
+      "p95QueryMs": 4506,
+      "maxQueryMs": 6927,
+      "hedgedSteps": 36,
+      "retriedSteps": 0
+    },
+    {
+      "hedging": false,
+      "runs": 40,
+      "top1": 1,
+      "meanQueryMs": 3334.95,
+      "p95QueryMs": 8353,
+      "maxQueryMs": 10771,
+      "hedgedSteps": 0,
+      "retriedSteps": 4
     }
   ]
 }

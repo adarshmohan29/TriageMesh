@@ -22,6 +22,8 @@ export interface AnthropicLlmOptions {
  */
 export class AnthropicLlm implements LlmClient {
   readonly name: string;
+  /** Real token counts reported by the API, summed over this client's calls. */
+  readonly usage = { calls: 0, inputTokens: 0, outputTokens: 0 };
   readonly #model: string;
   readonly #effort: NonNullable<AnthropicLlmOptions["effort"]>;
   readonly #client: Anthropic;
@@ -49,6 +51,9 @@ export class AnthropicLlm implements LlmClient {
         },
         options.signal ? { signal: options.signal } : {},
       );
+      this.usage.calls++;
+      this.usage.inputTokens += response.usage.input_tokens;
+      this.usage.outputTokens += response.usage.output_tokens;
       if (response.stop_reason === "refusal") {
         return err({ code: "refused", message: response.stop_details?.explanation ?? "model refused" });
       }

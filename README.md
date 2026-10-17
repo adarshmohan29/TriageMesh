@@ -34,7 +34,7 @@ Requires Node 22.12+ (`nvm use` picks it up from `.nvmrc`).
 
 ```bash
 npm ci
-npm test                       # 785 tests, offline, ~2s
+npm test                       # 792 tests, offline, ~3s
 npm run typecheck
 
 npm run investigate -- --list
@@ -141,10 +141,90 @@ with occasional stragglers, and each LLM call costs 1.2s, all on a virtual clock
 the numbers are exact and the same on every machine.
 Full output: [`bench/results/results.md`](bench/results/results.md).
 
-| system | top-1 | top-3 | mean time | p95 time | tool calls | LLM calls | est. tokens |
-|---|---|---|---|---|---|---|---|
-| orchestrator | 100% | 100% | 6.4s | 8.1s | 19.3 | 3 | 4420 |
-| ReAct baseline | 75% | 75% | 6.7s | 14.7s | 3.5 | 4.5 | 6683 |
+| system | top-1 | top-3 | mean time | p95 time | tool calls | LLM calls | est. tokens | policy denials |
+|---|---|---|---|---|---|---|---|---|
+| orchestrator | 100% | 100% | 6.4s | 8.1s | 19.3 | 3 | 4420 | 5 |
+| ReAct baseline | 75% | 75% | 6.7s | 14.7s | 3.5 | 4.5 | 6683 | 0 |
+
+"Correct" means the right kind of cause, in the right service, pointing at the right
+deploy, flag, certificate or dependency. The orchestrator's 5 policy denials are by
+design: in `disk-full-injection` the fix is a destructive database failover, and the
+benchmark runs as `responder`, who may not use destructive tools, so its preview is
+denied once per seed.
+
+**Per incident** (mean of 5 seeds):
+
+| incident | orchestrator | baseline | orchestrator time | baseline time | baseline's wrong answer |
+|---|---|---|---|---|---|
+| bad-deploy | 100% | 100% | 6.6s | 5.5s | |
+| flag-retry-storm | 100% | 100% | 5.4s | 5.2s | |
+| pool-exhaustion | 100% | 100% | 6.6s | 5.2s | |
+| missing-index | 100% | 100% | 6.6s | 5.6s | |
+| upstream-gateway | 100% | 0% | 6.8s | 5.3s | blames the deploy that landed 4m *after* onset |
+| cert-expiry | 100% | 0% | 6.5s | 5.2s | blames an unrelated flag flipped 3m earlier |
+| memory-leak | 100% | 100% | 6.2s | 8.1s | |
+| disk-full-injection | 100% | 100% | 6.8s | 13.5s | |
+
+### Where the orchestrator's time goes
+
+Measured over the same 40 runs (8 incidents × 5 seeds):
+
+| metric | value |
+|---|---|
+| plan size | 18.4 read steps on average |
+| queries, run concurrently (4 at a time) | **2.8s** mean |
+| the same queries run one after another | 8.5s mean, so concurrency gives a **3.0× speed-up** |
+| hedged steps (a duplicate request sent for a straggler) | 36 in 40 runs, about 0.9 per investigation (savings below) |
+| LLM time (3 calls × 1.2s simulated) | 3.6s, more than half of the 6.4s total |
+| evidence extracted | 22.5 typed pieces per investigation |
+| conflicts recorded | 10 in 40 runs (one red-herring deploy and one skewed clock per seed) |
+| score gap between #1 and #2 hypothesis | 5.6 points on average |
+
+Because tool time is already overlapped, the remaining cost is mostly the three
+sequential LLM calls (plan, extra hypotheses, extra remediations). The baseline spends
+one LLM call per tool call, so its cost grows with every hop it has to make.
+
+### What hedging alone buys
+
+The same 40 orchestrator runs, once with hedging and once with it switched off
+(`hedgeAfterMs: undefined`); nothing else changes. Part of `npm run bench`.
+
+| hedging | accuracy | mean query time | p95 query time | worst run | hedged steps | steps that timed out and were retried |
+|---|---|---|---|---|---|---|
+| on | 100% | **2.83s** | **4.51s** | **6.93s** | 36 | 0 |
+| off | 100% | 3.33s | 8.35s | 10.77s | 0 | 4 |
+
+Hedging cuts mean query time by 15% and the p95 tail by **46%**. Without it, a
+straggling request has to hit the 5s timeout before it is retried; with it, a duplicate
+goes out after 1.5s and the first answer wins. Accuracy is unaffected: it changes
+when the evidence arrives, not what it is.
+
+**Running cost of the project itself:** the 792 tests take about 3s, and the full
+benchmark (80 investigations plus the 80-run hedging ablation) takes about 1-2s of
+real time, because all waiting happens on a virtual clock.
+
+### With a real model (pending)
+
+> **Not run yet.** These results need an Anthropic API key; the table below is the
+> layout `npm run bench -- --llm anthropic` produces, not data. Values will be filled
+> in from `bench/results/anthropic/results.md` after a real run.
+
+```bash
+export ANTHROPIC_API_KEY=...            # or put it in your shell profile
+npm run bench -- --llm anthropic --incidents upstream-gateway,cert-expiry   # the two red-herring incidents first
+npm run bench -- --llm anthropic        # all 8, one seed
+```
+
+| system | top-1 | top-3 | real time | sim time | tool calls | LLM calls | billed tokens | policy denials |
+|---|---|---|---|---|---|---|---|---|
+| orchestrator | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| ReAct baseline | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+
+What this run will answer: whether a real model, used as a plain ReAct agent, avoids
+the "blame the most recent change" trap that the scripted baseline falls into on
+`upstream-gateway` and `cert-expiry`; how often the orchestrator actually uses the
+model's plan rather than falling back to its template (`outcome: plan:llm` vs
+`plan:template` in `results.json`); and what each approach costs in billed tokens.
 
 **How to read this honestly:**
 
@@ -155,6 +235,11 @@ Full output: [`bench/results/results.md`](bench/results/results.md).
   shows what temporal-causality checking buys against that failure mode, not how a
   frontier model would score. For that, run with `TRIAGEMESH_LLM=anthropic` (not
   deterministic, so not part of the test suite).
+- **Real model:** `ANTHROPIC_API_KEY=… npm run bench -- --llm anthropic --incidents upstream-gateway,cert-expiry`
+  runs both systems with the real model (one seed by default; this uses API credits) and
+  writes `bench/results/anthropic/`. It reports real elapsed time and the tokens the API
+  actually billed. A run in which the model answers nothing (e.g. a missing key) aborts
+  instead of reporting the orchestrator's deterministic fallback as a model result.
 - The orchestrator makes ~5× more tool calls in about the same mean time because
   independent queries run in parallel and slow calls are hedged. The baseline is
   quicker on the easy incidents only because it stops after three calls. When it has
