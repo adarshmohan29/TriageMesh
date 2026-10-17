@@ -24,12 +24,15 @@ const KEY_METRICS: Record<Service, MetricName[]> = {
 };
 
 /**
- * The alerting service and everything it calls. SERVICES is ordered by
- * request flow (api -> payments -> database), so a payments alert can be
- * caused by payments or the database, but not by the api.
+ * The alerting service, everything it calls, and its direct caller.
+ * SERVICES is ordered by request flow (api -> payments -> database).
+ * Errors and latency travel *up* the chain (a slow database makes payments
+ * slow), so anything downstream is a suspect. Load travels *down* (a caller
+ * retrying aggressively overloads its callee), so the direct caller is too.
  */
 export function suspectServices(alert: Pick<Alert, "service">): Service[] {
-  return SERVICES.slice(SERVICES.indexOf(alert.service));
+  const index = SERVICES.indexOf(alert.service);
+  return SERVICES.slice(Math.max(0, index - 1));
 }
 
 /**

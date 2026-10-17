@@ -31,7 +31,12 @@ function draftStep(id: string, tool: string, input: unknown, dependsOn: string[]
 
 describe("suspectServices", () => {
   it("includes the alerting service and everything downstream", () => {
-    expect(suspectServices({ service: "payments" })).toEqual(["payments", "database"]);
+    expect(suspectServices({ service: "api" })).toEqual(["api", "payments", "database"]);
+  });
+
+  // flag-retry-storm: payments' retries overload the database.
+  it("includes the direct caller, since callers drive load", () => {
+    expect(suspectServices({ service: "database" })).toEqual(["payments", "database"]);
   });
 });
 
