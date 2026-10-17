@@ -152,6 +152,10 @@ design: in `disk-full-injection` the fix is a destructive database failover, and
 benchmark runs as `responder`, who may not use destructive tools, so its preview is
 denied once per seed.
 
+*The baseline is a scripted ReAct-style agent (`src/baseline/mock.ts`); the gap shows
+the value of checking event order. A real-model run is supported
+(`npm run bench -- --llm anthropic`) and its results will be added here.*
+
 **Per incident** (mean of 5 seeds):
 
 | incident | orchestrator | baseline | orchestrator time | baseline time | baseline's wrong answer |
