@@ -1,0 +1,30 @@
+# TriageMesh default policy. Enforced by PolicyEngine + GuardedInvoker in code;
+# nothing here depends on an LLM following instructions.
+version: 1
+
+# Which permission tiers each role may use at all.
+roles:
+  investigator:
+    tiers: [read]
+  responder:
+    tiers: [read, reversible_write]
+  incident_commander:
+    tiers: [read, reversible_write, destructive]
+
+# Evaluated in order; the first matching deny wins over any approval rule.
+rules:
+  - id: never-drop-tables
+    effect: deny
+    tools: [db.drop_table]
+    reason: Dropping tables destroys data and is never automated.
+
+  - id: approve-db-writes
+    effect: require_approval
+    tools: ["db.*"]
+    reason: Database changes need a human, even reversible ones.
+
+limits:
+  # A single action may not touch more services than this (from its dry run).
+  maxAffectedServices: 2
+  # Successful writes allowed in one investigation.
+  maxWritesPerRun: 3
