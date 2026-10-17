@@ -31,7 +31,7 @@ Run `npm run typecheck && npm test` before calling any phase done.
 
 - All work happens directly on a single branch, `dev`. Do not create a new branch per phase.
 - Commit to `dev` at the end of each phase, once typecheck and tests are green.
-- Don't push, or merge into `main`, unless asked.
+- Don't push, or merge into `main`, unless asked. `main` is merged once the whole project is done.
 
 ## Layout
 
