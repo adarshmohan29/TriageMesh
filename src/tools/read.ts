@@ -31,6 +31,42 @@ export const ConfigChangeSchema = z.object({
   actor: z.string(),
 });
 
+export const MetricsQueryOutputSchema = z.object({
+  from: z.number().int(),
+  to: z.number().int(),
+  points: z.array(MetricPointSchema),
+});
+
+export const LogsSearchOutputSchema = z.object({
+  lines: z.array(LogLineSchema),
+  total: z.number().int(),
+  truncated: z.boolean(),
+});
+
+export const DeploysListOutputSchema = z.object({ deploys: z.array(DeployEventSchema) });
+
+export const FlagsListOutputSchema = z.object({
+  current: z.record(z.string(), z.boolean()),
+  changes: z.array(FlagEventSchema),
+});
+
+export const ConfigHistoryOutputSchema = z.object({
+  current: z.record(z.string(), ConfigValueSchema),
+  changes: z.array(ConfigChangeSchema),
+});
+
+export const ServiceStatusOutputSchema = z.object({
+  services: z.array(
+    z.object({
+      service: ServiceSchema,
+      version: z.string(),
+      lastDeployAt: z.number().int().nullable(),
+      lastRestartAt: z.number().int().nullable(),
+    }),
+  ),
+  dbPrimary: z.string(),
+});
+
 export function createReadTools(world: World): AnyTool[] {
   const metricsQuery = defineTool({
     name: "metrics.query",
@@ -45,11 +81,7 @@ export function createReadTools(world: World): AnyTool[] {
       source: SourceSchema.optional(),
       ...WindowInput,
     }),
-    outputSchema: z.object({
-      from: z.number().int(),
-      to: z.number().int(),
-      points: z.array(MetricPointSchema),
-    }),
+    outputSchema: MetricsQueryOutputSchema,
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
@@ -81,11 +113,7 @@ export function createReadTools(world: World): AnyTool[] {
       limit: z.number().int().min(1).max(MAX_LOG_LINES).default(200),
       ...WindowInput,
     }),
-    outputSchema: z.object({
-      lines: z.array(LogLineSchema),
-      total: z.number().int(),
-      truncated: z.boolean(),
-    }),
+    outputSchema: LogsSearchOutputSchema,
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
@@ -109,7 +137,7 @@ export function createReadTools(world: World): AnyTool[] {
     capabilities: ["deploys.read"],
     tier: "read",
     inputSchema: z.object({ service: ServiceSchema.optional(), ...WindowInput }),
-    outputSchema: z.object({ deploys: z.array(DeployEventSchema) }),
+    outputSchema: DeploysListOutputSchema,
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
@@ -128,10 +156,7 @@ export function createReadTools(world: World): AnyTool[] {
     capabilities: ["flags.read"],
     tier: "read",
     inputSchema: z.object({ ...WindowInput }),
-    outputSchema: z.object({
-      current: z.record(z.string(), z.boolean()),
-      changes: z.array(FlagEventSchema),
-    }),
+    outputSchema: FlagsListOutputSchema,
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
@@ -150,10 +175,7 @@ export function createReadTools(world: World): AnyTool[] {
     capabilities: ["config.read"],
     tier: "read",
     inputSchema: z.object({ ...WindowInput }),
-    outputSchema: z.object({
-      current: z.record(z.string(), ConfigValueSchema),
-      changes: z.array(ConfigChangeSchema),
-    }),
+    outputSchema: ConfigHistoryOutputSchema,
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
@@ -172,17 +194,7 @@ export function createReadTools(world: World): AnyTool[] {
     capabilities: ["status.read"],
     tier: "read",
     inputSchema: z.object({}),
-    outputSchema: z.object({
-      services: z.array(
-        z.object({
-          service: ServiceSchema,
-          version: z.string(),
-          lastDeployAt: z.number().int().nullable(),
-          lastRestartAt: z.number().int().nullable(),
-        }),
-      ),
-      dbPrimary: z.string(),
-    }),
+    outputSchema: ServiceStatusOutputSchema,
     async run(_input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;

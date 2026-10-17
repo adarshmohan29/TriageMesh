@@ -66,7 +66,9 @@ export function templateNeeds(alert: Alert, services: readonly Service[] = suspe
       needs.push({
         id,
         capability: "metrics.read",
-        input: { service, metric, source: "prometheus", ...telemetry },
+        // Every source, not just prometheus: comparing sources is how a
+        // skewed clock (or a lying agent) gets caught.
+        input: { service, metric, ...telemetry },
         purpose: `${service} ${metric} around the alert`,
         core: false,
       });
