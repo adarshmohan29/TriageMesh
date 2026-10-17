@@ -27,6 +27,12 @@ npm run mcp           # start the MCP server on stdio
 
 Run `npm run typecheck && npm test` before calling any phase done.
 
+## Git workflow
+
+- All work happens directly on a single branch, `dev`. Do not create a new branch per phase.
+- Commit to `dev` at the end of each phase, once typecheck and tests are green.
+- Don't push, or merge into `main`, unless asked.
+
 ## Layout
 
 ```
