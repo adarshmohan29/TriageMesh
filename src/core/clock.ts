@@ -133,3 +133,20 @@ export class VirtualClock implements Clock {
 function flushPromises(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+/**
+ * Await work that waits on `clock`. A SystemClock moves by itself; a
+ * VirtualClock only moves when told to, so keep firing its timers until the
+ * work settles. Each runAll() also yields to the event loop, so real I/O
+ * (e.g. an LLM call) still makes progress meanwhile.
+ */
+export async function settle<T>(clock: Clock, work: Promise<T>): Promise<T> {
+  if (!(clock instanceof VirtualClock)) return work;
+  let done = false;
+  work.then(
+    () => (done = true),
+    () => (done = true),
+  );
+  while (!done) await clock.runAll();
+  return work;
+}

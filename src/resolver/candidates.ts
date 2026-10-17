@@ -103,7 +103,7 @@ function conditionTitle(c: Candidate): string {
     case "disk_full":
       return `${c.service} disk is full${c.ref ? ` (replication slot ${c.ref} retaining WAL)` : ""}`;
     case "external_dependency":
-      return `external dependency ${c.ref ?? "unknown"} is failing ${c.service}'s calls`;
+      return `external dependency ${c.ref ?? "unknown"} is failing calls from ${c.service}`;
     default:
       return `${c.kind} in ${c.service}`;
   }

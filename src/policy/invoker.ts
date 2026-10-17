@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { err, ok, type Result } from "../core/result.js";
 import type { ToolRegistry } from "../registry/registry.js";
-import { DryRunSchema, type AnyTool, type DryRun, type ToolError } from "../registry/tool.js";
+import { DryRunSchema, type AnyTool, type DryRun, type Tier, type ToolError } from "../registry/tool.js";
 import type { ApprovalCallback } from "./approval.js";
 import type { AuditEvent, AuditLog } from "./audit.js";
-import type { PolicyEngine } from "./engine.js";
+import type { Decision, PolicyEngine } from "./engine.js";
 
 export const InvokeErrorSchema = z.object({
   code: z.enum([
@@ -34,6 +34,15 @@ export interface InvokeSuccess {
   dryRun?: DryRun;
 }
 
+/** What a write would do, and what policy would say, without doing it. */
+export interface PreviewResult {
+  tier: Tier;
+  dryRun: DryRun;
+  /** Policy would allow it, but only once a human approves. */
+  requiresApproval: boolean;
+  reason: string;
+}
+
 export interface GuardedInvokerDeps {
   registry: ToolRegistry;
   policy: PolicyEngine;
@@ -61,24 +70,12 @@ export class GuardedInvoker {
   }
 
   async invoke(name: string, rawInput: unknown, options: InvokeOptions): Promise<Result<InvokeSuccess, InvokeError>> {
-    const { registry, policy } = this.#deps;
     const { role } = options;
     const ctx = options.signal ? { signal: options.signal } : {};
 
-    const tool = registry.get(name);
-    if (!tool) {
-      return this.#fail({ kind: "deny", tool: name, role, input: rawInput, reason: "unknown tool" }, "unknown_tool");
-    }
-
-    const parsed = tool.inputSchema.safeParse(rawInput);
-    if (!parsed.success) {
-      const reason = `invalid input: ${z.prettifyError(parsed.error)}`;
-      return this.#fail({ kind: "deny", tool: name, role, input: rawInput, reason }, "invalid_input");
-    }
-    const input: unknown = parsed.data;
-
-    const call = policy.checkCall({ tool, role });
-    if (!call.allowed) return this.#fail({ kind: "deny", tool: name, role, input, reason: call.reason }, "denied");
+    const admitted = this.#admit(name, rawInput, role);
+    if (!admitted.ok) return admitted;
+    const { tool, input, call } = admitted.value;
 
     let dryRun: DryRun | undefined;
     if (tool.tier !== "read") {
@@ -92,6 +89,42 @@ export class GuardedInvoker {
     return this.#run(tool, input, role, ctx, dryRun);
   }
 
+  /**
+   * The write path up to (not including) approval, for showing a proposed
+   * remediation: validate input -> policy -> dryRun -> limits. It never asks
+   * a human and never runs the tool, and is audited like any other decision.
+   */
+  async preview(name: string, rawInput: unknown, options: InvokeOptions): Promise<Result<PreviewResult, InvokeError>> {
+    const { role } = options;
+    const admitted = this.#admit(name, rawInput, role);
+    if (!admitted.ok) return admitted;
+    const { tool, input } = admitted.value;
+    if (tool.tier === "read") {
+      return this.#fail({ kind: "deny", tool: name, role, input, reason: "preview is only for write tools" }, "invalid_input");
+    }
+    const checked = await this.#dryRunWithinLimits(tool, input, role, options.signal ? { signal: options.signal } : {}, true);
+    if (!checked.ok) return checked;
+    const { dryRun, limits } = checked.value;
+    return ok({ tier: tool.tier, dryRun, requiresApproval: limits.requiresApproval, reason: limits.reason });
+  }
+
+  /** Look up -> validate input -> may this role call this tool at all? */
+  #admit(name: string, rawInput: unknown, role: string): Result<{ tool: AnyTool; input: unknown; call: Decision & { allowed: true } }, InvokeError> {
+    const tool = this.#deps.registry.get(name);
+    if (!tool) {
+      return this.#fail({ kind: "deny", tool: name, role, input: rawInput, reason: "unknown tool" }, "unknown_tool");
+    }
+    const parsed = tool.inputSchema.safeParse(rawInput);
+    if (!parsed.success) {
+      const reason = `invalid input: ${z.prettifyError(parsed.error)}`;
+      return this.#fail({ kind: "deny", tool: name, role, input: rawInput, reason }, "invalid_input");
+    }
+    const input: unknown = parsed.data;
+    const call = this.#deps.policy.checkCall({ tool, role });
+    if (!call.allowed) return this.#fail({ kind: "deny", tool: name, role, input, reason: call.reason }, "denied");
+    return ok({ tool, input, call });
+  }
+
   /** Rule 3: a successful dry run, blast-radius limits, then approval if required. */
   async #gateWrite(
     tool: AnyTool,
@@ -99,6 +132,37 @@ export class GuardedInvoker {
     role: string,
     ctx: { signal?: AbortSignal },
   ): Promise<Result<DryRun, InvokeError>> {
+    const name = tool.name;
+    const checked = await this.#dryRunWithinLimits(tool, input, role, ctx, false);
+    if (!checked.ok) return checked;
+    const { dryRun, limits } = checked.value;
+
+    if (limits.requiresApproval) {
+      const decision = await this.#deps.approve({ tool: name, tier: tool.tier, role, input, dryRun, reason: limits.reason });
+      this.#audit({
+        kind: "approval",
+        tool: name,
+        role,
+        input,
+        reason: limits.reason,
+        detail: { approved: decision.approved, approver: decision.approver, ...(decision.note && { note: decision.note }) },
+      });
+      if (!decision.approved) {
+        return err({ code: "not_approved", tool: name, message: `${decision.approver} did not approve ${name}` });
+      }
+    }
+    this.#audit({ kind: "allow", tool: name, role, input, reason: limits.reason });
+    return ok(dryRun);
+  }
+
+  /** Dry run, then the limits that depend on what it would change. */
+  async #dryRunWithinLimits(
+    tool: AnyTool,
+    input: unknown,
+    role: string,
+    ctx: { signal?: AbortSignal },
+    isPreview: boolean,
+  ): Promise<Result<{ dryRun: DryRun; limits: Decision & { allowed: true } }, InvokeError>> {
     const name = tool.name;
     // defineTool guarantees dryRun on writes; this guards hand-built tools too.
     const dryRunFn = tool.dryRun?.bind(tool);
@@ -123,24 +187,8 @@ export class GuardedInvoker {
     if (!limits.allowed) {
       return this.#fail({ kind: "deny", tool: name, role, input, reason: limits.reason, detail: { dryRun } }, "denied");
     }
-    this.#audit({ kind: "dry_run", tool: name, role, input, reason: dryRun.summary, detail: { dryRun } });
-
-    if (limits.requiresApproval) {
-      const decision = await this.#deps.approve({ tool: name, tier: tool.tier, role, input, dryRun, reason: limits.reason });
-      this.#audit({
-        kind: "approval",
-        tool: name,
-        role,
-        input,
-        reason: limits.reason,
-        detail: { approved: decision.approved, approver: decision.approver, ...(decision.note && { note: decision.note }) },
-      });
-      if (!decision.approved) {
-        return err({ code: "not_approved", tool: name, message: `${decision.approver} did not approve ${name}` });
-      }
-    }
-    this.#audit({ kind: "allow", tool: name, role, input, reason: limits.reason });
-    return ok(dryRun);
+    this.#audit({ kind: "dry_run", tool: name, role, input, reason: dryRun.summary, detail: { dryRun, ...(isPreview && { preview: true }) } });
+    return ok({ dryRun, limits });
   }
 
   async #run(

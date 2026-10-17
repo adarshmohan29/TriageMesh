@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VirtualClock } from "../../src/core/clock.js";
+import { settle, SystemClock, VirtualClock } from "../../src/core/clock.js";
 
 describe("VirtualClock", () => {
   it("starts at the given time and does not move on its own", () => {
@@ -89,5 +89,27 @@ describe("VirtualClock", () => {
     void loop();
 
     await expect(clock.runAll(50)).rejects.toThrow("exceeded 50 timers");
+  });
+});
+
+describe("settle", () => {
+  it("drives a VirtualClock until the work finishes", async () => {
+    const clock = new VirtualClock(0);
+    const work = (async () => {
+      await clock.sleep(1_000);
+      await clock.sleep(500);
+      return clock.now();
+    })();
+    expect(await settle(clock, work)).toBe(1_500);
+  });
+
+  it("passes rejections through", async () => {
+    const clock = new VirtualClock(0);
+    const work = clock.sleep(10).then(() => Promise.reject(new Error("boom")));
+    await expect(settle(clock, work)).rejects.toThrow("boom");
+  });
+
+  it("leaves other clocks alone", async () => {
+    expect(await settle(new SystemClock(), Promise.resolve(7))).toBe(7);
   });
 });
