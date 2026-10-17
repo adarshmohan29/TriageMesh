@@ -3,7 +3,8 @@ import { err, ok, type Result } from "../core/result.js";
 import type { Rng } from "../core/rng.js";
 import { extractEvidence } from "../evidence/extract.js";
 import { Executor, type ExecutorConfig } from "../executor/executor.js";
-import type { LlmCallOptions, LlmClient, LlmError, LlmRequest } from "../llm/client.js";
+import type { LlmClient } from "../llm/client.js";
+import { MeteredLlm } from "../llm/metered.js";
 import type { ApprovalCallback } from "../policy/approval.js";
 import { verifyAuditChain, type AuditLog } from "../policy/audit.js";
 import type { PolicyEngine } from "../policy/engine.js";
@@ -53,11 +54,20 @@ export class Orchestrator {
     this.#deps = deps;
   }
 
-  async investigate(alert: Alert, options: InvestigateOptions): Promise<Result<InvestigationReport, InvestigationError>> {
+  /**
+   * Drives the clock for the whole investigation: tool latency, LLM latency
+   * and executor timeouts all wait on it (see settle()).
+   */
+  investigate(alert: Alert, options: InvestigateOptions): Promise<Result<InvestigationReport, InvestigationError>> {
+    return settle(this.#deps.clock, this.#investigate(alert, options));
+  }
+
+  async #investigate(alert: Alert, options: InvestigateOptions): Promise<Result<InvestigationReport, InvestigationError>> {
     const { registry, policy, audit, approve, clock, rng } = this.#deps;
     const { role, signal } = options;
     const signalOpt = signal ? { signal } : {};
-    const llm = new CountingLlm(this.#deps.llm);
+    const began = clock.now();
+    const llm = new MeteredLlm(this.#deps.llm);
     const invoker = new GuardedInvoker({ registry, policy, audit, approve });
 
     const router = new Router({ registry, policy, llm });
@@ -65,7 +75,7 @@ export class Orchestrator {
     if (!plan.ok) return err({ code: "no_plan", message: plan.error.message });
 
     const executor = new Executor({ invoker, registry, clock, rng, ...(this.#deps.executor && { config: this.#deps.executor }) });
-    const execution = await settle(clock, executor.execute(plan.value, { role, ...signalOpt }));
+    const execution = await executor.execute(plan.value, { role, ...signalOpt });
     if (!execution.ok) return err({ code: "invalid_plan", message: execution.error.join("; ") });
 
     const { evidence, notes: evidenceNotes } = extractEvidence(execution.value);
@@ -113,9 +123,11 @@ export class Orchestrator {
       applied,
       stats: {
         toolCalls: entries.filter((e) => e.kind === "result").length,
-        llmCalls: llm.calls,
+        llmCalls: llm.usage.calls,
+        llmTokens: llm.usage.inputTokens + llm.usage.outputTokens,
         policyDenials: entries.filter((e) => e.kind === "deny").length,
         executionMs: finishedAt - startedAt,
+        elapsedMs: clock.now() - began,
       },
       audit: { entries: entries.length, chainValid: verifyAuditChain(entries).ok, lastHash: entries.at(-1)?.hash ?? null },
     });
@@ -136,21 +148,4 @@ async function applyRecommended(
   if (ran.ok) return { ...base, status: "applied", message: ran.value.dryRun?.summary ?? `${chosen.tool} ran` };
   const status = ran.error.code === "not_approved" ? "not_approved" : ran.error.code === "denied" ? "denied" : "failed";
   return { ...base, status, message: ran.error.message };
-}
-
-/** Counts calls for the report and benchmark; otherwise passes straight through. */
-class CountingLlm implements LlmClient {
-  readonly name: string;
-  readonly #inner: LlmClient;
-  calls = 0;
-
-  constructor(inner: LlmClient) {
-    this.#inner = inner;
-    this.name = inner.name;
-  }
-
-  generate<T>(request: LlmRequest<T>, options?: LlmCallOptions): Promise<Result<T, LlmError>> {
-    this.calls++;
-    return this.#inner.generate(request, options);
-  }
 }

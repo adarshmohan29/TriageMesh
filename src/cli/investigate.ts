@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { userInfo } from "node:os";
 import { createLlm } from "../llm/factory.js";
 import { fileSink } from "../policy/audit.js";
-import { investigateIncident, MOCK_RESPONDERS } from "../orchestrator/sim.js";
+import { DEFAULT_SIM_LATENCY, investigateIncident, MOCK_RESPONDERS } from "../orchestrator/sim.js";
 import { INCIDENTS } from "../sim/incidents/index.js";
 import { terminalApprover } from "./approval.js";
 import { INVESTIGATE_USAGE, parseInvestigateArgs } from "./args.js";
@@ -37,6 +37,9 @@ async function main(): Promise<number> {
     role: opts.role,
     apply: opts.apply,
     llm: llm.value,
+    // Simulated backends answer with realistic delays on the virtual clock. A
+    // real model's latency is real time, so only the mock gets a simulated one.
+    latency: { ...DEFAULT_SIM_LATENCY, llmMs: llm.value.name === "mock" ? DEFAULT_SIM_LATENCY.llmMs : 0 },
     approve: terminalApprover({ input: process.stdin, output: process.stderr, approver: userInfo().username }),
     ...(opts.audit && { auditSink: fileSink(opts.audit) }),
   });

@@ -1,6 +1,7 @@
 import { err, ok, type Result } from "../core/result.js";
 import { createRng } from "../core/rng.js";
 import type { LlmClient } from "../llm/client.js";
+import { MeteredLlm } from "../llm/metered.js";
 import { MockLlm, type MockResponders } from "../llm/mock.js";
 import { mockPlannerResponder } from "../planner/mock.js";
 import { denyAll, type ApprovalCallback } from "../policy/approval.js";
@@ -10,7 +11,9 @@ import { DEFAULT_POLICY_PATH, loadPolicyFile, type Policy } from "../policy/poli
 import { mockRouterResponder } from "../router/mock.js";
 import { getIncident, INCIDENT_IDS } from "../sim/incidents/index.js";
 import { World } from "../sim/world.js";
+import type { ToolRegistry } from "../registry/registry.js";
 import { createSimRegistry } from "../tools/index.js";
+import { DEFAULT_LATENCY, SimLatency, type LatencyProfile } from "../tools/latency.js";
 import { Orchestrator, type InvestigationError } from "./orchestrator.js";
 import type { InvestigationReport } from "./report.js";
 
@@ -22,6 +25,15 @@ export const MOCK_RESPONDERS: MockResponders = {
 
 /** Can propose reversible fixes; destructive ones need incident_commander. */
 export const DEFAULT_ROLE = "responder";
+
+/** Simulated latency for tools and the LLM, on the world's virtual clock. */
+export interface SimLatencyOptions {
+  tools: LatencyProfile;
+  /** Added to every LLM call. Only meaningful for the mock; real calls take real time. */
+  llmMs: number;
+}
+
+export const DEFAULT_SIM_LATENCY: SimLatencyOptions = { tools: DEFAULT_LATENCY, llmMs: 1_200 };
 
 export interface IncidentRunOptions {
   incident: string;
@@ -36,6 +48,8 @@ export interface IncidentRunOptions {
   policy?: Policy;
   /** Receives each audit entry as a JSONL line. */
   auditSink?: (line: string) => void;
+  /** Omitted: tools and the LLM answer instantly. */
+  latency?: SimLatencyOptions;
   signal?: AbortSignal;
 }
 
@@ -48,8 +62,21 @@ export interface IncidentRun {
 
 export type IncidentRunError = InvestigationError | { code: "unknown_incident" | "bad_policy"; message: string };
 
-/** Investigate one of the scripted incidents end to end. Same options => same report. */
-export async function investigateIncident(options: IncidentRunOptions): Promise<Result<IncidentRun, IncidentRunError>> {
+/** Everything an investigator needs to work on one simulated incident. */
+export interface SimEnvironment {
+  world: World;
+  registry: ToolRegistry;
+  policy: PolicyEngine;
+  audit: AuditLog;
+  llm: LlmClient;
+  seed: number;
+}
+
+/**
+ * Build a fresh world and its tools, policy, audit log and LLM. Shared by
+ * the orchestrator and the ReAct baseline so both face identical conditions.
+ */
+export function simEnvironment(options: IncidentRunOptions): Result<SimEnvironment, IncidentRunError> {
   const script = getIncident(options.incident);
   if (!script) return err({ code: "unknown_incident", message: `unknown incident "${options.incident}" (known: ${INCIDENT_IDS.join(", ")})` });
 
@@ -62,13 +89,25 @@ export async function investigateIncident(options: IncidentRunOptions): Promise<
 
   const seed = options.seed ?? 1;
   const world = new World({ incident: script, seed });
+  const latency = options.latency;
+  const registry = createSimRegistry(world, latency ? { latency: new SimLatency(world.clock, createRng(seed).fork("latency"), latency.tools) } : {});
+  const baseLlm = options.llm ?? new MockLlm(MOCK_RESPONDERS);
+  const llm = latency?.llmMs ? new MeteredLlm(baseLlm, { clock: world.clock, latencyMs: latency.llmMs }) : baseLlm;
   const audit = new AuditLog({ clock: world.clock, ...(options.auditSink && { sink: options.auditSink }) });
+  return ok({ world, registry, policy: new PolicyEngine(policy), audit, llm, seed });
+}
+
+/** Investigate one of the scripted incidents end to end. Same options => same report. */
+export async function investigateIncident(options: IncidentRunOptions): Promise<Result<IncidentRun, IncidentRunError>> {
+  const env = simEnvironment(options);
+  if (!env.ok) return env;
+  const { world, registry, policy, audit, llm, seed } = env.value;
   const orchestrator = new Orchestrator({
-    registry: createSimRegistry(world),
-    policy: new PolicyEngine(policy),
+    registry,
+    policy,
     audit,
     approve: options.approve ?? denyAll,
-    llm: options.llm ?? new MockLlm(MOCK_RESPONDERS),
+    llm,
     clock: world.clock,
     rng: createRng(seed),
   });

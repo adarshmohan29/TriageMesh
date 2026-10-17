@@ -32,7 +32,13 @@ export function formatReport(report: InvestigationReport, c: ChalkInstance): str
     `${report.plan.source} plan, ${steps.length} steps: ${c.green(`${count("ok")} ok`)}` +
       (count("failed") ? `, ${c.red(`${count("failed")} failed`)}` : "") +
       (count("skipped") ? `, ${c.yellow(`${count("skipped")} skipped`)}` : "") +
-      ` · ${report.evidence.length} evidence · ${stats.toolCalls} tool calls · ${stats.llmCalls} LLM calls · ${stats.executionMs}ms`,
+      ` · ${report.evidence.length} evidence · ${stats.toolCalls} tool calls · ${stats.llmCalls} LLM calls`,
+  );
+  line(
+    c.dim(`queries ran in ${seconds(stats.executionMs)}, whole investigation ${seconds(stats.elapsedMs)} (simulated time)`) +
+      (steps.some((s) => s.hedged || s.attempts > 1)
+        ? c.dim(` · ${steps.filter((s) => s.hedged).length} hedged, ${steps.filter((s) => s.attempts > 1 && !s.hedged).length} retried`)
+        : ""),
   );
 
   heading("Root-cause hypotheses");
@@ -100,6 +106,10 @@ function strongest(links: readonly EvidenceLink[]): EvidenceLink[] {
 
 function iso(ms: number): string {
   return new Date(ms).toISOString().replace(".000Z", "Z");
+}
+
+function seconds(ms: number): string {
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 function pct(x: number): string {

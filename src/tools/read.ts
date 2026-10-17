@@ -15,6 +15,7 @@ import {
 } from "../sim/types.js";
 import type { World } from "../sim/world.js";
 import { WindowInput, checkAborted, resolveWindow } from "./common.js";
+import type { SimLatency } from "./latency.js";
 
 const MAX_LOG_LINES = 1000;
 
@@ -67,7 +68,16 @@ export const ServiceStatusOutputSchema = z.object({
   dbPrimary: z.string(),
 });
 
-export function createReadTools(world: World): AnyTool[] {
+export interface ReadToolOptions {
+  /** Simulated backend latency; omitted means every call is instant. */
+  latency?: SimLatency;
+}
+
+export function createReadTools(world: World, options: ReadToolOptions = {}): AnyTool[] {
+  // Every read waits for its simulated backend before answering.
+  const backend = (tool: string, input: unknown, signal: AbortSignal | undefined) =>
+    options.latency ? options.latency.wait(tool, input, signal) : Promise.resolve(ok(undefined));
+
   const metricsQuery = defineTool({
     name: "metrics.query",
     description:
@@ -85,6 +95,8 @@ export function createReadTools(world: World): AnyTool[] {
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("metrics.query", input, ctx.signal);
+      if (!waited.ok) return waited;
       const window = resolveWindow(world, input);
       if (!window.ok) return window;
       const { from, to } = window.value;
@@ -117,6 +129,8 @@ export function createReadTools(world: World): AnyTool[] {
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("logs.search", input, ctx.signal);
+      if (!waited.ok) return waited;
       const window = resolveWindow(world, input);
       if (!window.ok) return window;
       const all = world.logs({
@@ -141,6 +155,8 @@ export function createReadTools(world: World): AnyTool[] {
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("deploys.list", input, ctx.signal);
+      if (!waited.ok) return waited;
       const window = resolveWindow(world, input);
       if (!window.ok) return window;
       const deploys = world
@@ -160,6 +176,8 @@ export function createReadTools(world: World): AnyTool[] {
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("flags.list", input, ctx.signal);
+      if (!waited.ok) return waited;
       const window = resolveWindow(world, input);
       if (!window.ok) return window;
       const changes = world.events({ ...window.value, kind: "flag" }).filter(isKind("flag"));
@@ -179,6 +197,8 @@ export function createReadTools(world: World): AnyTool[] {
     async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("config.history", input, ctx.signal);
+      if (!waited.ok) return waited;
       const window = resolveWindow(world, input);
       if (!window.ok) return window;
       const changes = world.events(window.value).flatMap(toConfigChanges);
@@ -195,9 +215,11 @@ export function createReadTools(world: World): AnyTool[] {
     tier: "read",
     inputSchema: z.object({}),
     outputSchema: ServiceStatusOutputSchema,
-    async run(_input, ctx) {
+    async run(input, ctx) {
       const aborted = checkAborted(ctx);
       if (!aborted.ok) return aborted;
+      const waited = await backend("service.status", input, ctx.signal);
+      if (!waited.ok) return waited;
       const state = world.stateAt(world.now());
       return ok({
         services: SERVICES.map((service) => ({

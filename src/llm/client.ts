@@ -2,7 +2,7 @@ import { z } from "zod";
 import { err, ok, type Result } from "../core/result.js";
 
 /** What a call is for. MockLlm dispatches on it; logs and tests key on it. */
-export const LlmPurposeSchema = z.enum(["router.pick", "planner.plan", "resolver.hypotheses", "remediation.propose"]);
+export const LlmPurposeSchema = z.enum(["router.pick", "planner.plan", "resolver.hypotheses", "remediation.propose", "baseline.step"]);
 export type LlmPurpose = z.infer<typeof LlmPurposeSchema>;
 
 /**

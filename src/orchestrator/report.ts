@@ -84,9 +84,13 @@ export const InvestigationReportSchema = z.object({
     /** Tool runs (not counting denied attempts or dry runs). */
     toolCalls: z.number().int(),
     llmCalls: z.number().int(),
+    /** Estimated input + output tokens across all LLM calls. */
+    llmTokens: z.number().int(),
     policyDenials: z.number().int(),
     /** Virtual (or real) ms from the first step starting to the last finishing. */
     executionMs: z.number().int(),
+    /** Whole investigation, including LLM calls and remediation previews. */
+    elapsedMs: z.number().int(),
   }),
   audit: z.object({
     entries: z.number().int(),

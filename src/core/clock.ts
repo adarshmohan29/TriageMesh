@@ -143,10 +143,15 @@ function flushPromises(): Promise<void> {
 export async function settle<T>(clock: Clock, work: Promise<T>): Promise<T> {
   if (!(clock instanceof VirtualClock)) return work;
   let done = false;
-  work.then(
+  const finished = work.then(
     () => (done = true),
     () => (done = true),
   );
-  while (!done) await clock.runAll();
+  while (!done) {
+    await clock.runAll();
+    // Nothing scheduled on the virtual clock means the work is waiting on
+    // real I/O: wait for it (or a moment) instead of spinning.
+    if (!done && clock.pendingTimers === 0) await Promise.race([finished, new Promise((r) => setTimeout(r, 10))]);
+  }
   return work;
 }

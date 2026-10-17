@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { unwrap } from "../../src/core/result.js";
 import { MockLlm } from "../../src/llm/mock.js";
 import { InvestigationReportSchema } from "../../src/orchestrator/report.js";
-import { investigateIncident, MOCK_RESPONDERS, type IncidentRunOptions } from "../../src/orchestrator/sim.js";
+import { DEFAULT_SIM_LATENCY, investigateIncident, MOCK_RESPONDERS, type IncidentRunOptions } from "../../src/orchestrator/sim.js";
 import { INCIDENTS } from "../../src/sim/incidents/index.js";
 import { recordingApprover } from "../policy/helpers.js";
 
@@ -160,4 +160,22 @@ describe("--apply", () => {
 
 it("reports an unknown incident as an error", async () => {
   expect(await investigateIncident({ incident: "nope" })).toMatchObject({ ok: false, error: { code: "unknown_incident" } });
+});
+
+describe("with simulated latency", () => {
+  it.each(INCIDENTS.map((i) => [i.id]))("still ranks the true root cause of %s first", async (id) => {
+    const { report, world } = await run({ incident: id, latency: DEFAULT_SIM_LATENCY });
+    expect(report.resolution.hypotheses[0]).toMatchObject({ kind: world.groundTruth.kind, ref: world.groundTruth.ref });
+  });
+
+  it("runs queries concurrently: execution is far shorter than the sum of step times", async () => {
+    const { report } = await run({ incident: "bad-deploy", latency: DEFAULT_SIM_LATENCY });
+    const summed = report.execution.steps.reduce((t, s) => t + (s.finishedAt - s.startedAt), 0);
+    expect(report.stats.executionMs).toBeLessThan(summed / 2);
+  });
+
+  it("is deterministic for a seed", async () => {
+    const opts = { incident: "memory-leak", seed: 2, latency: DEFAULT_SIM_LATENCY };
+    expect((await run(opts)).report).toEqual((await run(opts)).report);
+  });
 });
