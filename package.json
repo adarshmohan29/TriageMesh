@@ -1,13 +1,26 @@
 {
   "name": "triagemesh",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "0.1.0",
+  "description": "Incident-investigation orchestrator: parallel evidence gathering, conflict resolution, ranked root-cause hypotheses, policy-gated remediation.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "investigate": "tsx src/cli/investigate.ts",
+    "bench": "tsx src/cli/bench.ts",
+    "mcp": "tsx src/mcp/server.ts"
+  },
+  "keywords": [
+    "incident-response",
+    "llm",
+    "mcp",
+    "orchestrator"
+  ],
+  "author": "adarshmohan29",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^26.6.5",
